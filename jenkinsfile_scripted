@@ -1,0 +1,26 @@
+node{
+  
+  def mavenHome = tool name: "maven-3.8.2"
+  stage('checkout code'){
+    git credentialsId: 'devopsfirst', url: 'https://github.com/devopsfirst/maven-web-application.git'
+  }
+  
+  stage('maven build'){
+    sh "${mavenHome}/bin/mvn clean package"
+  }
+  
+  stage('sonarqubereport'){
+    sh "${mavenHome}/bin/mvn clean sonar:sonar"
+  
+  }
+  stage('upload artifcats into nexus'){
+    sh "${mavenHome}/bin/mvn clean deploy"
+  }
+  
+  stage('deploy on tomcat'){
+  sshagent(['8ce051fb-5afb-4efb-a5c2-8a8adc62cbbd']) {
+  sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@3.108.218.47:/opt/apache-tomcat-9.0.53/webapps"
+}
+  
+  }
+}
