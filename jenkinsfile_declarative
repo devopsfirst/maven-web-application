@@ -1,0 +1,50 @@
+pipeline{
+agent any
+
+tools{
+ maven "maven-3.8.2"
+}
+
+options{
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5'))
+
+timestamps()
+}
+
+triggers{
+//poll scm
+pollSCM('* * * * *')
+}
+
+stages{
+  stage('check out code'){
+  steps{
+  git credentialsId: 'devopsfirst', url: 'https://github.com/devopsfirst/maven-web-application.git'
+	   }
+    }
+   stage('Build'){
+   steps{
+    sh "mvn clean package"
+   }
+   }
+   stage('sonarqubereport'){
+   steps{
+    sh "mvn sonar:sonar"
+   }
+   }
+   stage('upload artifacts to nexus'){
+   steps{
+    sh "mvn clean deploy"
+   }
+   }
+   stage('deploy app in tomcat'){
+   steps{
+    sshagent(['8ce051fb-5afb-4efb-a5c2-8a8adc62cbbd']) {
+    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@3.108.218.47:/opt/apache-tomcat-9.0.53/webapps"
+   }
+   }
+   }
+  
+
+}// main stage closing
+}// pipe line closing
