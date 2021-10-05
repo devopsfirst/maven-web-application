@@ -1,6 +1,7 @@
 node{
   
   def mavenHome = tool name: "maven-3.8.2"
+  properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), pipelineTriggers([pollSCM('* * * * *')])])
   stage('checkout code'){
     git credentialsId: 'devopsfirst', url: 'https://github.com/devopsfirst/maven-web-application.git'
   }
